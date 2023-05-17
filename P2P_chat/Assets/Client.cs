@@ -25,13 +25,13 @@ public class Client
         thread.Start();
     }
     static void Main()
-    {
-        
-        _client = new UdpClient();
-        _client.Client.Bind(_localEndPoint);
+    {// Создание UDP клиента для отправки и приема сообщений
 
-        Thread receiveThread = new Thread(new ThreadStart(ReceiveMessage));
-        receiveThread.Start();
+        _client = new UdpClient();
+        ThreadStart threadStart = new ThreadStart(ReceiveMessage);
+        Thread thread = new Thread(threadStart);
+        thread.Start();
+
     }
 
     public static void SendMessage(string message)
