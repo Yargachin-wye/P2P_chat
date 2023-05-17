@@ -8,19 +8,16 @@ using UnityEngine;
 public class Client
 {
     private static string _name;
-    private static IPEndPoint _receivePoint;
     private static IPEndPoint _sendPoint;
+    private static IPAddress _ipAddress;
     private static int _port1;
-
-    private static UdpClient _client;
+    private static int _port2;
     public static void StartClient(string name, string ipAddressString, int port1, int port2)
     {
         _name = name;
-        IPAddress ipAddress = IPAddress.Parse(ipAddressString);
-
-        //_receivePoint = new IPEndPoint(ipAddress, port1);
-        _sendPoint = new IPEndPoint(ipAddress, port2);
         _port1 = port1;
+        _ipAddress = IPAddress.Parse(ipAddressString);
+        _port2 = port2;
 
         ThreadStart threadStart = new ThreadStart(ReceiveMessage);
         Thread thread = new Thread(threadStart);
@@ -28,28 +25,20 @@ public class Client
     }
     public static void SendMessage(string str)
     {
-        string message = _name + ": " + str;
-        UdpClient client = new UdpClient();
+        using UdpClient sender = new();
 
-        // Отправка сообщения
-        byte[] bytes = System.Text.Encoding.ASCII.GetBytes(message);
-        client.Send(bytes, bytes.Length, _sendPoint);
-
-        // Закрытие UDP клиента
-        client.Close();
+        byte[] data = System.Text.Encoding.UTF8.GetBytes(str);
+        sender.Send(data, data.Length, new IPEndPoint(_ipAddress, _port1));
     }
-
-    private static void ReceiveMessage()
+    public static void ReceiveMessage()
     {
-        UdpClient client = new UdpClient(_port1);
-        // Ожидание сообщения
+        using UdpClient receiver = new(_port2);
+        IPEndPoint ip = null;
         while (true)
         {
-            IPEndPoint remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
-            byte[] receivedBytes = client.Receive(ref remoteEndPoint);
-            string receivedMessage = System.Text.Encoding.ASCII.GetString(receivedBytes);
-            MainManeger.ShowMessage(receivedMessage);
+            var result = receiver.Receive(ref ip);
+            var message = System.Text.Encoding.UTF8.GetString(result);
+            MainManeger.ShowMessage(message);
         }
-        client.Close();
     }
 }
