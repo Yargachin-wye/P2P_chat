@@ -12,7 +12,8 @@ public class MainManeger : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _inMessageText;
     private static TextMeshProUGUI _message;
     [SerializeField] private TMP_InputField _ipInputField;
-    [SerializeField] private TMP_InputField _portInputField;
+    [SerializeField] private TMP_InputField _port1InputField;
+    [SerializeField] private TMP_InputField _port2InputField;
     [SerializeField] private TMP_InputField _outMessageText;
     [SerializeField] private GameObject SendMessageButton;
 
@@ -27,7 +28,7 @@ public class MainManeger : MonoBehaviour
     }
     public void DoSomeDirtyShit()
     {
-        Client.StartClient("jopicson", _ipInputField.text, int.Parse(_portInputField.text));
+        Client.StartClient("jopicson", _ipInputField.text, int.Parse(_port1InputField.text), int.Parse(_port2InputField.text));
 
         SendMessageButton.SetActive(true);
     }

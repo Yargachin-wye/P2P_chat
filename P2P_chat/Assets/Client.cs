@@ -8,21 +8,19 @@ using UnityEngine;
 public class Client
 {
     private static string _name;
-    private static IPEndPoint _remoteEndPoint;
-    private static IPEndPoint _endPoint;
-    private static int _port;
+    private static IPEndPoint _receivePoint;
+    private static IPEndPoint _sendPoint;
+    private static int _port1;
 
     private static UdpClient _client;
-    public static void StartClient(string name, string ipAddressString, int port)
+    public static void StartClient(string name, string ipAddressString, int port1, int port2)
     {
         _name = name;
         IPAddress ipAddress = IPAddress.Parse(ipAddressString);
 
-        _remoteEndPoint = new IPEndPoint(ipAddress, port);
-        _endPoint = new IPEndPoint(ipAddress, port);
-        _port = port;
-
-        Debug.Log("[" + ipAddress + ":" + _port + "]");
+        //_receivePoint = new IPEndPoint(ipAddress, port1);
+        _sendPoint = new IPEndPoint(ipAddress, port2);
+        _port1 = port1;
 
         ThreadStart threadStart = new ThreadStart(ReceiveMessage);
         Thread thread = new Thread(threadStart);
@@ -35,7 +33,7 @@ public class Client
 
         // Отправка сообщения
         byte[] bytes = System.Text.Encoding.ASCII.GetBytes(message);
-        client.Send(bytes, bytes.Length, _endPoint);
+        client.Send(bytes, bytes.Length, _sendPoint);
 
         // Закрытие UDP клиента
         client.Close();
@@ -43,7 +41,7 @@ public class Client
 
     private static void ReceiveMessage()
     {
-        UdpClient client = new UdpClient(_port);
+        UdpClient client = new UdpClient(_port1);
         // Ожидание сообщения
         while (true)
         {
