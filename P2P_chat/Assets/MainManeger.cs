@@ -28,7 +28,7 @@ public class MainManeger : MonoBehaviour
     }
     public void DoSomeDirtyShit()
     {
-        Client.StartClient("jopicson", _ipInputField.text, int.Parse(_port1InputField.text), int.Parse(_port2InputField.text));
+        Client.StartClient(_ipInputField.text, int.Parse(_port1InputField.text), int.Parse(_port2InputField.text));
 
         SendMessageButton.SetActive(true);
     }
