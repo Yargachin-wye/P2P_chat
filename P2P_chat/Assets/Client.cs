@@ -10,15 +10,18 @@ public class Client
     private static IPAddress _ipAddress;
     private static int _port1;
     private static int _port2;
-    public static void StartClient(string ipAddressString, int port1, int port2)
+    public static void StartClient(string ipAddressString, int port1, int port2, bool isServer )
     {
         _port1 = port1;
         _ipAddress = IPAddress.Parse(ipAddressString);
         _port2 = port2;
 
-        ThreadStart threadStart = new ThreadStart(ReceiveMessage);
-        Thread thread = new Thread(threadStart);
-        thread.Start();
+        if (isServer)
+        {
+            ThreadStart threadStart = new ThreadStart(ReceiveMessage);
+            Thread thread = new Thread(threadStart);
+            thread.Start();
+        }
     }
     public static void SendMessage(string str)
     {
