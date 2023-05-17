@@ -8,32 +8,25 @@ using UnityEngine;
 public class Client
 {
     private static string _name;
-    private static UdpClient _client;
     private static IPEndPoint _remoteEndPoint;
-    private static IPEndPoint _localEndPoint;
+    private static int _port;
+
+    private static UdpClient _client;
     public static void StartClient(string name, string ipAddressString, int port)
     {
         _name = name;
         IPAddress remoteAddress = IPAddress.Parse(ipAddressString);
-        Debug.Log("["+ remoteAddress + ":"+port+"]");
 
         _remoteEndPoint = new IPEndPoint(remoteAddress, port);
-        _localEndPoint = new IPEndPoint(IPAddress.Any, port);
 
-        ThreadStart threadStart = new ThreadStart(Main);
-        Thread thread = new Thread(threadStart);
-        thread.Start();
-    }
-    static void Main()
-    {// Создание UDP клиента для отправки и приема сообщений
+        _port = port;
 
-        _client = new UdpClient();
+        Debug.Log("[" + remoteAddress + ":" + _port + "]");
+
         ThreadStart threadStart = new ThreadStart(ReceiveMessage);
         Thread thread = new Thread(threadStart);
         thread.Start();
-
     }
-
     public static void SendMessage(string message)
     {
         message = _name + ": " + message;
@@ -43,11 +36,14 @@ public class Client
 
     private static void ReceiveMessage()
     {
+        UdpClient client = new UdpClient(_port);
+        // Ожидание сообщения
         while (true)
         {
-            byte[] data = _client.Receive(ref _localEndPoint);
-            string message = System.Text.Encoding.ASCII.GetString(data);
-            MainManeger.ShowMessage(message);
+            IPEndPoint remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
+            byte[] receivedBytes = client.Receive(ref remoteEndPoint);
+            string receivedMessage = System.Text.Encoding.ASCII.GetString(receivedBytes);
         }
+        client.Close();
     }
 }
