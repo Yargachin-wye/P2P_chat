@@ -12,25 +12,22 @@ public class MainManeger : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _inMessageText;
     private static TextMeshProUGUI _message;
     [SerializeField] private TMP_InputField _ipInputField;
-    [SerializeField] private TMP_InputField _port1InputField;
-    [SerializeField] private TMP_InputField _port2InputField;
+    [SerializeField] private TMP_InputField _portInputField;
     [SerializeField] private TMP_InputField _outMessageText;
     [SerializeField] private GameObject SendMessageButton;
     [SerializeField] private bool _isServer = false;
-
+    private int port;
     private void Start()
     {
         _message = _inMessageText;
         string ipAddressString = GetLocalIPAddress();
-        int port = GetAvailablePort();
-
-        _ipText.text = "my ip:\n" + ipAddressString + "\nfree port:\n" + port;
+        port = GetAvailablePort();
+        _ipText.text = "my ip:\n" + ipAddressString + "\nyour free port:\n" + port;
         SendMessageButton.SetActive(false);
     }
     public void DoSomeDirtyShit()
     {
-        Client.StartClient(_ipInputField.text, int.Parse(_port1InputField.text), int.Parse(_port2InputField.text), _isServer);
-
+        Client.StartClient(_ipInputField.text, int.Parse(_portInputField.text), port, _isServer);
         SendMessageButton.SetActive(true);
     }
     public void SendMessage()
