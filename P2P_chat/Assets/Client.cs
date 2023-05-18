@@ -40,7 +40,7 @@ public class Client
         {
             var result = udpClient.Receive(ref ip);
             var message = System.Text.Encoding.UTF8.GetString(result);
-            MainManeger.ShowMessage(message);
+            MainManeger.instaince.ShowMessage(message);
         }
     }
 }

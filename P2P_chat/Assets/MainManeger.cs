@@ -9,18 +9,24 @@ using TMPro;
 public class MainManeger : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI _ipText;
-    [SerializeField] private TextMeshProUGUI _inMessageText;
-    public static TextMeshProUGUI message;
+    [SerializeField] public TextMeshProUGUI _inMessageText;
     [SerializeField] private TMP_InputField _ipInputField;
     [SerializeField] private TMP_InputField _portInputField;
     [SerializeField] private TMP_InputField _outMessageText;
     [SerializeField] private GameObject SendMessageButton;
     [SerializeField] private bool _isServer = false;
     private int port;
+
+    public static MainManeger instaince;
     private void Awake()
     {
-        message = _inMessageText;
-        message.text = " ";
+        if(instaince != null)
+        {
+            Debug.LogError("MainManeger not allone");
+        }
+        instaince = this;
+        _inMessageText = _inMessageText;
+        _inMessageText.text = " ";
         string ipAddressString = GetLocalIPAddress();
         port = GetAvailablePort();
         _ipText.text = "my ip:\n" + ipAddressString + "\nyour free port:\n" + port;
@@ -35,12 +41,13 @@ public class MainManeger : MonoBehaviour
     {
         Client.SendMessage(_outMessageText.text);
     }
-    public static void ShowMessage(string str)
+    public void ShowMessage(string str)
     {
         if (str == null)
             return;
+
         Debug.Log(str);
-        message.text = str + message.text;
+        _inMessageText.text = str + _inMessageText.text;
     }
     private string GetLocalIPAddress()
     {
