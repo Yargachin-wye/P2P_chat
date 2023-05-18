@@ -10,7 +10,7 @@ public class Client
     private static IPAddress _ipAddress;
     private static int _port1;
     private static int _port2;
-    public static void StartClient(string ipAddressString, int port1, int port2, bool isServer )
+    public static void StartClient(string ipAddressString, int port1, int port2, bool isServer)
     {
         _port1 = port1;
         _ipAddress = IPAddress.Parse(ipAddressString);
@@ -29,6 +29,7 @@ public class Client
 
         byte[] data = System.Text.Encoding.UTF8.GetBytes(str);
         sender.Send(data, data.Length, new IPEndPoint(_ipAddress, _port1));
+        MainManeger.instaince.ShowMessage("you - " + str);
         Debug.Log("Message sended");
     }
     public static void ReceiveMessage()

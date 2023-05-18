@@ -4,12 +4,13 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 using TMPro;
 
 public class MainManeger : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI _ipText;
-    [SerializeField] public TextMeshProUGUI _inMessageText;
+    [SerializeField] private TextMeshProUGUI _messagerTextMP;
     [SerializeField] private TMP_InputField _ipInputField;
     [SerializeField] private TMP_InputField _portInputField;
     [SerializeField] private TMP_InputField _outMessageText;
@@ -20,13 +21,12 @@ public class MainManeger : MonoBehaviour
     public static MainManeger instaince;
     private void Awake()
     {
-        if(instaince != null)
+        if (instaince != null)
         {
             Debug.LogError("MainManeger not allone");
         }
         instaince = this;
-        _inMessageText = _inMessageText;
-        _inMessageText.text = " ";
+        _messagerTextMP.text = " ";
         string ipAddressString = GetLocalIPAddress();
         port = GetAvailablePort();
         _ipText.text = "my ip:\n" + ipAddressString + "\nyour free port:\n" + port;
@@ -47,7 +47,12 @@ public class MainManeger : MonoBehaviour
             return;
 
         Debug.Log(str);
-        _inMessageText.text = str + _inMessageText.text;
+        //_messagerTextMP.text = str + _messagerTextMP.text;
+        /*_messagerText.text = str + _messagerText.text;*/
+        UnityMainThreadDispatcher.Instance().Enqueue(() =>
+        {
+            _messagerTextMP.text = _messagerTextMP.text + "\n" + str;
+        });
     }
     private string GetLocalIPAddress()
     {
