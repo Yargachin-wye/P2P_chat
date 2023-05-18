@@ -33,16 +33,15 @@ public class Client
     }
     public static void ReceiveMessage()
     {
-        using UdpClient receiver = new(_port2);
-        IPEndPoint ip = new IPEndPoint(IPAddress.Any, _port2);
-        //MainManeger.ShowMessage("start ReceiveMessage");
+        UdpClient udpClient = new UdpClient(_port2);
+        IPEndPoint ip = new IPEndPoint(IPAddress.Any, 0);
         Debug.Log("start ReceiveMessage");
         while (true)
         {
-            var result = receiver.Receive(ref ip);
+            var result = udpClient.Receive(ref ip);
             var message = System.Text.Encoding.UTF8.GetString(result);
             //MainManeger.ShowMessage(message);
-            Debug.Log(message);
+            Debug.Log(ip + " - " + message);
         }
     }
 }

@@ -27,6 +27,7 @@ public class MainManeger : MonoBehaviour
     }
     public void DoSomeDirtyShit()
     {
+        //TCPClient.StartClient(_ipInputField.text, int.Parse(_portInputField.text), _isServer);
         Client.StartClient(_ipInputField.text, int.Parse(_portInputField.text), port, _isServer);
         SendMessageButton.SetActive(true);
     }
