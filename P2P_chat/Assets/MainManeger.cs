@@ -10,16 +10,17 @@ public class MainManeger : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI _ipText;
     [SerializeField] private TextMeshProUGUI _inMessageText;
-    private static TextMeshProUGUI _message;
+    public static TextMeshProUGUI message;
     [SerializeField] private TMP_InputField _ipInputField;
     [SerializeField] private TMP_InputField _portInputField;
     [SerializeField] private TMP_InputField _outMessageText;
     [SerializeField] private GameObject SendMessageButton;
     [SerializeField] private bool _isServer = false;
     private int port;
-    private void Start()
+    private void Awake()
     {
-        _message = _inMessageText;
+        message = _inMessageText;
+        message.text = " ";
         string ipAddressString = GetLocalIPAddress();
         port = GetAvailablePort();
         _ipText.text = "my ip:\n" + ipAddressString + "\nyour free port:\n" + port;
@@ -27,7 +28,6 @@ public class MainManeger : MonoBehaviour
     }
     public void DoSomeDirtyShit()
     {
-        //TCPClient.StartClient(_ipInputField.text, int.Parse(_portInputField.text), _isServer);
         Client.StartClient(_ipInputField.text, int.Parse(_portInputField.text), port, _isServer);
         SendMessageButton.SetActive(true);
     }
@@ -37,7 +37,10 @@ public class MainManeger : MonoBehaviour
     }
     public static void ShowMessage(string str)
     {
-        _message.text = str + _message.text;
+        if (str == null)
+            return;
+        Debug.Log(str);
+        message.text = str + message.text;
     }
     private string GetLocalIPAddress()
     {
