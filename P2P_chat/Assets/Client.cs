@@ -34,7 +34,7 @@ public class Client
     public static void ReceiveMessage()
     {
         using UdpClient receiver = new(_port2);
-        IPEndPoint ip = new IPEndPoint(IPAddress.Parse(GetLocalIPAddress()), _port2);
+        IPEndPoint ip = new IPEndPoint(IPAddress.Any, _port2);
         //MainManeger.ShowMessage("start ReceiveMessage");
         Debug.Log("start ReceiveMessage");
         while (true)
@@ -44,18 +44,5 @@ public class Client
             //MainManeger.ShowMessage(message);
             Debug.Log(message);
         }
-    }
-    private static string GetLocalIPAddress()
-    {
-        var host = Dns.GetHostEntry(Dns.GetHostName());
-        foreach (var ip in host.AddressList)
-        {
-            if (ip.AddressFamily == AddressFamily.InterNetwork)
-            {
-                return ip.ToString();
-            }
-        }
-        Debug.LogWarning("IP-адрес не найден.");
-        return " ";
     }
 }
