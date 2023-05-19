@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using System.Net;
 using System.Net.Sockets;
@@ -14,7 +15,9 @@ public class MainManeger : MonoBehaviour
     [SerializeField] private TMP_InputField _ipInputField;
     [SerializeField] private TMP_InputField _portInputField;
     [SerializeField] private TMP_InputField _outMessageText;
-    [SerializeField] private GameObject SendMessageButton;
+    [SerializeField] private GameObject _sendMessageButton;
+    [SerializeField] private GameObject _conectButton;
+    [SerializeField] private GameObject _restartButton;
     [SerializeField] private bool _isServer = false;
     private int port;
 
@@ -26,16 +29,37 @@ public class MainManeger : MonoBehaviour
             Debug.LogError("MainManeger not allone");
         }
         instaince = this;
+
         _messagerTextMP.text = " ";
-        string ipAddressString = GetLocalIPAddress();
-        port = GetAvailablePort();
-        _ipText.text = "my ip:\n" + ipAddressString + "\nyour free port:\n" + port;
-        SendMessageButton.SetActive(false);
+
+        Client.StartReceive();
+
+        _sendMessageButton.SetActive(false);
+        _restartButton.SetActive(true);
+        _conectButton.SetActive(true);
     }
-    public void DoSomeDirtyShit()
+    public void ShowConnectInfo(int port)
     {
-        Client.StartClient(_ipInputField.text, int.Parse(_portInputField.text), port, _isServer);
-        SendMessageButton.SetActive(true);
+        UnityMainThreadDispatcher.Instance().Enqueue(() =>
+        {
+            _ipText.text =
+            "my external ip:\t" + GetExternaIPAddress() + "\n" +
+            "my local ip:\t\t" + GetLocalIPAddress() + "\n" +
+            "your free port:\t" + port.ToString();
+        });
+    }
+    public void ConnectToIp()
+    {
+        IPAddress ip;
+        if (!IPAddress.TryParse(_ipInputField.text, out ip))
+        {
+            _messagerTextMP.text = "Wrong IP";
+            return;
+        }
+        Client.ConnectToIp(ip, int.Parse(_portInputField.text));
+
+        _sendMessageButton.SetActive(true);
+        _conectButton.SetActive(false);
     }
     public void SendMessage()
     {
@@ -43,16 +67,14 @@ public class MainManeger : MonoBehaviour
     }
     public void ShowMessage(string str)
     {
-        if (str == null)
-            return;
-
-        Debug.Log(str);
-        //_messagerTextMP.text = str + _messagerTextMP.text;
-        /*_messagerText.text = str + _messagerText.text;*/
         UnityMainThreadDispatcher.Instance().Enqueue(() =>
         {
             _messagerTextMP.text = _messagerTextMP.text + "\n" + str;
         });
+    }
+    public void Restart()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
     private string GetLocalIPAddress()
     {
@@ -67,12 +89,11 @@ public class MainManeger : MonoBehaviour
         Debug.LogWarning("IP-адрес не найден.");
         return " ";
     }
-    private int GetAvailablePort()
+    private string GetExternaIPAddress()
     {
-        TcpListener listener = new TcpListener(IPAddress.Loopback, 0);
-        listener.Start();
-        int port = ((IPEndPoint)listener.LocalEndpoint).Port;
-        listener.Stop();
-        return port;
+        WebClient client = new WebClient();
+        string externalIP = client.DownloadString("https://api.ipify.org");
+        return externalIP;
     }
+
 }

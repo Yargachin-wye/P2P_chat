@@ -3,43 +3,41 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using UnityEngine;
 
 public class Client
 {
     private static IPAddress _ipAddress;
-    private static int _port1;
-    private static int _port2;
-    public static void StartClient(string ipAddressString, int port1, int port2, bool isServer)
+    private static int _port;
+    public static void StartReceive()
     {
-        _port1 = port1;
-        _ipAddress = IPAddress.Parse(ipAddressString);
-        _port2 = port2;
-
-        if (isServer)
-        {
-            ThreadStart threadStart = new ThreadStart(ReceiveMessage);
-            Thread thread = new Thread(threadStart);
-            thread.Start();
-        }
+        ThreadStart threadStart = new ThreadStart(ReceiveMessage);
+        Thread thread = new Thread(threadStart);
+        thread.Start();
+    }
+    public static void ConnectToIp(IPAddress ipAddress, int port)
+    {
+        _port = port;
+        _ipAddress = ipAddress;
     }
     public static void SendMessage(string str)
     {
         using UdpClient sender = new();
 
         byte[] data = System.Text.Encoding.UTF8.GetBytes(str);
-        sender.Send(data, data.Length, new IPEndPoint(_ipAddress, _port1));
+        sender.Send(data, data.Length, new IPEndPoint(_ipAddress, _port));
         MainManeger.instaince.ShowMessage("you - " + str);
-        Debug.Log("Message sended");
     }
     public static void ReceiveMessage()
     {
-        UdpClient udpClient = new UdpClient(_port2);
+        UdpClient udpListener = new UdpClient(0);
         IPEndPoint ip = new IPEndPoint(IPAddress.Any, 0);
-        Debug.Log("start ReceiveMessage");
+
+        int port = ((IPEndPoint)udpListener.Client.LocalEndPoint).Port;
+        MainManeger.instaince.ShowConnectInfo(port);
+
         while (true)
         {
-            var result = udpClient.Receive(ref ip);
+            var result = udpListener.Receive(ref ip);
             var message = System.Text.Encoding.UTF8.GetString(result);
             MainManeger.instaince.ShowMessage(message);
         }
