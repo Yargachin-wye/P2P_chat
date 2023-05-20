@@ -8,7 +8,7 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using TMPro;
 
-public class MainManeger : MonoBehaviour
+public class MainManager : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI _ipText;
     [SerializeField] private TextMeshProUGUI _messagerTextMP;
@@ -21,18 +21,23 @@ public class MainManeger : MonoBehaviour
     [SerializeField] private bool _isServer = false;
     private int port;
 
-    public static MainManeger instaince;
+    public static MainManager instance;
     private void Awake()
     {
-        if (instaince != null)
+        if (instance != null)
         {
             Debug.LogError("MainManeger not allone");
         }
-        instaince = this;
+        instance = this;
 
         _messagerTextMP.text = " ";
-
-        Client.StartReceive();
+    }
+    private void Start()
+    {
+        IPAddress myIp;
+        IPAddress.TryParse(GetExternaIPAddress(), out myIp);
+        _messagerTextMP.text = myIp.ToString();
+        Client.StartReceive(myIp);
 
         _sendMessageButton.SetActive(false);
         _restartButton.SetActive(true);
