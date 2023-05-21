@@ -8,20 +8,21 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using TMPro;
 
-public class MainManager : MonoBehaviour
+public class ManClientMenager : MonoBehaviour
 {
-    [SerializeField] private TextMeshProUGUI _ipText;
-    [SerializeField] private TextMeshProUGUI _messagerTextMP;
+    [Header("Input for start")]
     [SerializeField] private TMP_InputField _ipInputField;
     [SerializeField] private TMP_InputField _portInputField;
+    [Header("Messaging")]
+    [SerializeField] private TextMeshProUGUI _messagerTextMP;
     [SerializeField] private TMP_InputField _outMessageText;
+    [Header("UI")]
     [SerializeField] private GameObject _sendMessageButton;
     [SerializeField] private GameObject _conectButton;
     [SerializeField] private GameObject _restartButton;
-    [SerializeField] private bool _isServer = false;
-    private int port;
 
-    public static MainManager instance;
+    private int port;
+    public static ManClientMenager instance;
     private void Awake()
     {
         if (instance != null)
@@ -32,39 +33,27 @@ public class MainManager : MonoBehaviour
 
         _messagerTextMP.text = " ";
     }
-    private void Start()
+    public void StartClient()
     {
-        IPAddress myIp;
-        IPAddress.TryParse(GetExternaIPAddress(), out myIp);
-        _messagerTextMP.text = myIp.ToString();
-        Client.StartReceive(myIp);
-
+        _messagerTextMP.text = "";
         _sendMessageButton.SetActive(false);
         _restartButton.SetActive(true);
         _conectButton.SetActive(true);
     }
-    public void ShowConnectInfo(int port)
+    public void StartMessager()
     {
-        UnityMainThreadDispatcher.Instance().Enqueue(() =>
-        {
-            _ipText.text =
-            "my external ip:\t" + GetExternaIPAddress() + "\n" +
-            "my local ip:\t\t" + GetLocalIPAddress() + "\n" +
-            "your free port:\t" + port.ToString();
-        });
-    }
-    public void ConnectToIp()
-    {
-        IPAddress ip;
-        if (!IPAddress.TryParse(_ipInputField.text, out ip))
+        IPAddress TrackerIp;
+        if (!IPAddress.TryParse(_ipInputField.text, out TrackerIp))
         {
             _messagerTextMP.text = "Wrong IP";
             return;
         }
-        Client.ConnectToIp(ip, int.Parse(_portInputField.text));
 
-        _sendMessageButton.SetActive(true);
-        _conectButton.SetActive(false);
+        IPAddress myIp;
+        IPAddress.TryParse(GetLocalIPAddress(), out myIp);
+        _messagerTextMP.text = myIp.ToString();
+
+        Client.StartReceive(myIp, TrackerIp, int.Parse(_portInputField.text));
     }
     public void SendMessage()
     {
@@ -100,5 +89,5 @@ public class MainManager : MonoBehaviour
         string externalIP = client.DownloadString("https://api.ipify.org");
         return externalIP;
     }
-
+    
 }
