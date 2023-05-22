@@ -21,8 +21,8 @@ public class ManClientMenager : MonoBehaviour
     [SerializeField] private GameObject _conectButton;
     [SerializeField] private GameObject _restartButton;
 
-    private int port;
     public static ManClientMenager instance;
+    bool client = false;
     private void Awake()
     {
         if (instance != null)
@@ -33,8 +33,16 @@ public class ManClientMenager : MonoBehaviour
 
         _messagerTextMP.text = " ";
     }
+    private void OnApplicationQuit()
+    {
+        if (!client)
+            return;
+        Debug.Log("Quit");
+        Client.DisConnectFromTracker();
+    }
     public void StartClient()
     {
+        client = true;
         _messagerTextMP.text = "";
         _sendMessageButton.SetActive(false);
         _restartButton.SetActive(true);
