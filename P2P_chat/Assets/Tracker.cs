@@ -79,7 +79,7 @@ public class Tracker : MonoBehaviour
                         StartReceive();
                     });
 
-                    AddClient(jd.ip1, jd.port1, 0, 1, buffer, networkStream);
+                    AddClient(jd.ip1, jd.port1, buffer, networkStream);
                     ipClient = jd.ip1;
 
                     break;
@@ -91,8 +91,11 @@ public class Tracker : MonoBehaviour
         tcpClient.Close();
         tcpListener.Stop();
     }
-    private static void AddClient(string ip, int port, float x, float y, byte[] buffer, NetworkStream networkStream)
+    private static void AddClient(string ip, int port, byte[] buffer, NetworkStream networkStream)
     {
+        float x = Random.Range(-200, 200);
+        float y = Random.Range(-200, 200);
+
         JTrackerData jd = new JTrackerData(TipeJData.Connect);
 
         buffer = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(jd));
@@ -112,22 +115,42 @@ public class Tracker : MonoBehaviour
         {
             _clients.AddLast(new ClientTracker(ip, port, x, y, networkStream));
 
-            jd = new JTrackerData(TipeJData.SetPosition, ip, port, null, 0);
-            buffer = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(jd));
-
-            _clients.First.Value.networkStream.Write(buffer, 0, buffer.Length);
-
             jd = new JTrackerData(TipeJData.SetPosition, _clients.First.Value.ip, _clients.First.Value.port, null, 0);
             buffer = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(jd));
+            networkStream.Write(buffer, 0, buffer.Length);
 
+            jd = new JTrackerData(TipeJData.SetPosition, ip, port, null, 0);
+            buffer = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(jd));
             _clients.First.Value.networkStream.Write(buffer, 0, buffer.Length);
         }
         else if (_clients.Count < 3)
         {
+            _clients.AddLast(new ClientTracker(ip, port, x, y, networkStream));
 
+            jd = new JTrackerData(TipeJData.SetPosition,
+                _clients.First.Next.Value.ip,
+                _clients.First.Next.Value.port,
+                _clients.First.Value.ip,
+                _clients.First.Value.port);
+            buffer = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(jd));
+            networkStream.Write(buffer, 0, buffer.Length);
+
+            jd = new JTrackerData(TipeJData.SetPosition,
+                ip,
+                port,
+                _clients.First.Next.Value.ip,
+                _clients.First.Next.Value.port);
+            buffer = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(jd));
+            _clients.First.Value.networkStream.Write(buffer, 0, buffer.Length);
+
+            jd = new JTrackerData(TipeJData.SetPosition,
+                _clients.First.Value.ip,
+                _clients.First.Value.port,
+                ip,
+                port);
+            buffer = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(jd));
+            _clients.First.Next.Value.networkStream.Write(buffer, 0, buffer.Length);
         }
-
-
     }
     private static string GetLocalIPAddress()
     {
@@ -172,5 +195,4 @@ public class ClientTracker
         y = Y;
         networkStream = NetworkStream;
     }
-
 }

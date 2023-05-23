@@ -62,6 +62,10 @@ public class ManClientMenager : MonoBehaviour
         _messagerTextMP.text = myIp.ToString();
 
         Client.StartReceive(myIp, TrackerIp, int.Parse(_portInputField.text));
+
+        _sendMessageButton.SetActive(true);
+        _restartButton.SetActive(true);
+        _conectButton.SetActive(false);
     }
     public void SendMessage()
     {
