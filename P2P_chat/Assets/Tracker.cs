@@ -101,23 +101,23 @@ public class Tracker : MonoBehaviour
         });
         if (_clients.Count < 1)
         {
-            _clients.AddLast(new ClientTracker(ip, port, new Vector2(x, y), networkStream));
             ClientSetPosition(null, 0, null, 0, networkStream);
+            _clients.AddLast(new ClientTracker(ip, port, new Vector2(x, y), networkStream));
             return;
         }
         else if (_clients.Count < 2)
         {
+            ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, null, 0, networkStream);
+            ClientSetPosition(ip, port, null, 0, _clients.First.Value.networkStream);
             _clients.AddLast(new ClientTracker(ip, port, new Vector2(x, y), networkStream));
-            ClientSetPosition(ip, port, null, 0, networkStream);
-            ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, null, 0, _clients.First.Value.networkStream);
             return;
         }
         else if (_clients.Count < 3)
         {
+            ClientSetPosition(_clients.Last.Value.ip, _clients.Last.Value.port, _clients.First.Value.ip, _clients.First.Value.port, networkStream);
+            ClientSetPosition(ip, port, _clients.Last.Value.ip, _clients.Last.Value.port, _clients.First.Value.networkStream);
+            ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, ip, port, _clients.Last.Value.networkStream);
             _clients.AddLast(new ClientTracker(ip, port, new Vector2(x, y), networkStream));
-            ClientSetPosition(_clients.First.Next.Value.ip, _clients.First.Next.Value.port, _clients.First.Value.ip, _clients.First.Value.port, networkStream);
-            ClientSetPosition(ip, port, _clients.First.Next.Value.ip, _clients.First.Next.Value.port, _clients.First.Value.networkStream);
-            ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, ip, port, _clients.First.Next.Value.networkStream);
             return;
         }
         float min = 600;
