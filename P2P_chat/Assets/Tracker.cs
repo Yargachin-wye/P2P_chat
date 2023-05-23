@@ -73,7 +73,7 @@ public class Tracker : MonoBehaviour
             {
                 case TipeJData.Connect:
                     ShowTextClients(jd.ip1 + " connected");
-                    
+
                     UnityMainThreadDispatcher.Instance().Enqueue(() =>
                     {
                         StartReceive();
@@ -93,8 +93,13 @@ public class Tracker : MonoBehaviour
     }
     private static void AddClient(string ip, int port, byte[] buffer, NetworkStream networkStream)
     {
-        float x = Random.Range(-200, 200);
-        float y = Random.Range(-200, 200);
+        float x = 0, y = 0;
+        UnityMainThreadDispatcher.Instance().Enqueue(() =>
+        {
+            x = Random.Range(-200f, 200f);
+            y = Random.Range(-200f, 200f);
+        });
+
 
         JTrackerData jd = new JTrackerData(TipeJData.Connect);
 
