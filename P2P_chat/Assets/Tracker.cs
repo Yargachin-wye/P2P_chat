@@ -79,7 +79,7 @@ public class Tracker : MonoBehaviour
                         StartReceive();
                     });
 
-                    AddClient(jd.ip1, jd.port1, buffer, networkStream);
+                    AddClient(jd.ip1, jd.port1, networkStream);
                     ipClient = jd.ip1;
 
                     break;
@@ -91,7 +91,7 @@ public class Tracker : MonoBehaviour
         tcpClient.Close();
         tcpListener.Stop();
     }
-    private static void AddClient(string ip, int port, byte[] buffer, NetworkStream networkStream)
+    private static void AddClient(string ip, int port, NetworkStream networkStream)
     {
         float x = 0, y = 0;
         UnityMainThreadDispatcher.Instance().Enqueue(() =>
@@ -99,63 +99,50 @@ public class Tracker : MonoBehaviour
             x = Random.Range(-200f, 200f);
             y = Random.Range(-200f, 200f);
         });
-
-
-        JTrackerData jd = new JTrackerData(TipeJData.Connect);
-
-        buffer = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(jd));
-        networkStream.Write(buffer, 0, buffer.Length);
-
         if (_clients.Count < 1)
         {
-            _clients.AddLast(new ClientTracker(ip, port, x, y, networkStream));
-
-            jd = new JTrackerData(TipeJData.SetPosition, null, 0, null, 0);
-            buffer = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(jd));
-            networkStream.Write(buffer, 0, buffer.Length);
-
+            _clients.AddLast(new ClientTracker(ip, port, new Vector2(x, y), networkStream));
+            ClientSetPosition(null, 0, null, 0, networkStream);
             return;
         }
         else if (_clients.Count < 2)
         {
-            _clients.AddLast(new ClientTracker(ip, port, x, y, networkStream));
-
-            jd = new JTrackerData(TipeJData.SetPosition, _clients.First.Value.ip, _clients.First.Value.port, null, 0);
-            buffer = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(jd));
-            networkStream.Write(buffer, 0, buffer.Length);
-
-            jd = new JTrackerData(TipeJData.SetPosition, ip, port, null, 0);
-            buffer = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(jd));
-            _clients.First.Value.networkStream.Write(buffer, 0, buffer.Length);
+            _clients.AddLast(new ClientTracker(ip, port, new Vector2(x, y), networkStream));
+            ClientSetPosition(ip, port, null, 0, networkStream);
+            ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, null, 0, _clients.First.Value.networkStream);
+            return;
         }
         else if (_clients.Count < 3)
         {
-            _clients.AddLast(new ClientTracker(ip, port, x, y, networkStream));
-
-            jd = new JTrackerData(TipeJData.SetPosition,
-                _clients.First.Next.Value.ip,
-                _clients.First.Next.Value.port,
-                _clients.First.Value.ip,
-                _clients.First.Value.port);
-            buffer = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(jd));
-            networkStream.Write(buffer, 0, buffer.Length);
-
-            jd = new JTrackerData(TipeJData.SetPosition,
-                ip,
-                port,
-                _clients.First.Next.Value.ip,
-                _clients.First.Next.Value.port);
-            buffer = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(jd));
-            _clients.First.Value.networkStream.Write(buffer, 0, buffer.Length);
-
-            jd = new JTrackerData(TipeJData.SetPosition,
-                _clients.First.Value.ip,
-                _clients.First.Value.port,
-                ip,
-                port);
-            buffer = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(jd));
-            _clients.First.Next.Value.networkStream.Write(buffer, 0, buffer.Length);
+            _clients.AddLast(new ClientTracker(ip, port, new Vector2(x, y), networkStream));
+            ClientSetPosition(_clients.First.Next.Value.ip, _clients.First.Next.Value.port, _clients.First.Value.ip, _clients.First.Value.port, networkStream);
+            ClientSetPosition(ip, port, _clients.First.Next.Value.ip, _clients.First.Next.Value.port, _clients.First.Value.networkStream);
+            ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, ip, port, _clients.First.Next.Value.networkStream);
+            return;
         }
+        float min = 600;
+        LinkedListNode<ClientTracker> minC = new LinkedListNode<ClientTracker>(new ClientTracker(" ", 0, Vector2.zero, networkStream));
+        for (LinkedListNode<ClientTracker> node = _clients.First.Next; node != null; node = node.Next)
+        {
+            float d = CalculateDistanceToLine(new Vector2(x, y), node.Previous.Value.pos, node.Value.pos);
+            if (min > d)
+            {
+                min = d;
+                minC = node.Previous;
+            }
+        }
+        if (minC.Previous != null)
+            ClientSetPosition(minC.Previous.Value.ip, minC.Previous.Value.port, ip, port, minC.Value.networkStream);
+        else
+            ClientSetPosition(_clients.Last.Value.ip, _clients.Last.Value.port, ip, port, minC.Value.networkStream);
+        if(minC.Next.Next != null)
+            ClientSetPosition(ip, port, minC.Next.Next.Value.ip, minC.Next.Next.Value.port, minC.Next.Value.networkStream);
+        else
+            ClientSetPosition(ip, port, _clients.First.Value.ip, _clients.First.Value.port, minC.Next.Value.networkStream);
+
+        ClientSetPosition(minC.Value.ip, minC.Value.port, minC.Next.Value.ip, minC.Next.Value.port, networkStream);
+
+        _clients.AddAfter(minC, new ClientTracker(ip, port, new Vector2(x, y), networkStream));
     }
     private static string GetLocalIPAddress()
     {
@@ -184,20 +171,40 @@ public class Tracker : MonoBehaviour
             textInfo.text += str + "\n";
         });
     }
+    private static void ClientSetPosition(string ip1, int port1, string ip2, int port2, NetworkStream networkStream)
+    {
+        JTrackerData jd = new JTrackerData(TipeJData.SetPosition, ip1, port1, ip2, port2);
+        byte[] buffer = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(jd));
+        networkStream.Write(buffer, 0, buffer.Length);
+    }
+    private static float CalculateDistanceToLine(Vector2 point, Vector2 lineStart, Vector2 lineEnd)
+    {
+        Vector2 lineDirection = lineEnd - lineStart;
+        float lineLength = lineDirection.magnitude;
+        Vector2 normalizedLineDirection = lineDirection / lineLength;
+
+        float distance = Vector3.Dot((point - lineStart), normalizedLineDirection);
+
+        distance = Mathf.Clamp(distance, 0f, lineLength);
+
+        Vector2 closestPoint = lineStart + normalizedLineDirection * distance;
+
+        float distanceToLine = Vector2.Distance(point, closestPoint);
+
+        return distanceToLine;
+    }
 }
 public class ClientTracker
 {
     public string ip;
     public int port;
-    public float x;
-    public float y;
+    public Vector2 pos;
     public NetworkStream networkStream;
-    public ClientTracker(string Ip, int Port, float X, float Y, NetworkStream NetworkStream)
+    public ClientTracker(string Ip, int Port, Vector2 Pos, NetworkStream NetworkStream)
     {
         ip = Ip;
         port = Port;
-        x = X;
-        y = Y;
+        pos = Pos;
         networkStream = NetworkStream;
     }
 }
