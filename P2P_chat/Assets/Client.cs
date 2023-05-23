@@ -95,15 +95,13 @@ public class Client
             switch (jd.tipeData)
             {
                 case TipeJData.Connect:
-                    ManClientMenager.instance.ShowMessage("You connected to chat");
 
                     break;
                 case TipeJData.Disconnect:
-                    ManClientMenager.instance.ShowMessage("You desconnected from chat");
 
                     break;
                 case TipeJData.SetPosition:
-                    ManClientMenager.instance.ShowMessage("You get position");
+                    ManClientMenager.instance.ShowMessage("You connected pos:");
                     SetPosition(jd.ip1, jd.port1, jd.ip2, jd.port2);
                     break;
                 default:
@@ -129,6 +127,7 @@ public class Client
 
         _neighbour2Ip = IPAddress.Parse(neighbour2Ip);
         _port2 = port2;
+        ManClientMenager.instance.ShowMessage(_neighbour2Ip + "  " + _port2.ToString());
     }
     public static void DisConnectFromTracker()
     {
