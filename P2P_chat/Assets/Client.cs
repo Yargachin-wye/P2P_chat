@@ -109,22 +109,18 @@ public class Client
     }
     private static void SetPosition(string neighbour1Ip, int port1, string neighbour2Ip = null, int port2 = 0)
     {
-        if (neighbour1Ip == null)
+        if (neighbour1Ip != null)
         {
-            ManClientMenager.instance.ShowMessage("you are alone");
-            return;
+            _neighbour1Ip = IPAddress.Parse(neighbour1Ip);
+            _port1 = port1;
+            ManClientMenager.instance.ShowMessage(_neighbour1Ip + "  " + _port1.ToString());
         }
-
-        _neighbour1Ip = IPAddress.Parse(neighbour1Ip);
-        _port1 = port1;
-        ManClientMenager.instance.ShowMessage(_neighbour1Ip + "  " + _port1.ToString());
-
-        if (neighbour2Ip == null)
-            return;
-
-        _neighbour2Ip = IPAddress.Parse(neighbour2Ip);
-        _port2 = port2;
-        ManClientMenager.instance.ShowMessage(_neighbour2Ip + "  " + _port2.ToString());
+        if (neighbour2Ip != null)
+        {
+            _neighbour2Ip = IPAddress.Parse(neighbour2Ip);
+            _port2 = port2;
+            ManClientMenager.instance.ShowMessage(_neighbour2Ip + "  " + _port2.ToString());
+        }
     }
     public static void DisConnectFromTracker()
     {

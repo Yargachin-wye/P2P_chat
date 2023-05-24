@@ -100,14 +100,12 @@ public class Tracker : MonoBehaviour
         {
             ClientSetPosition(null, 0, null, 0, networkStream);
             _clients.AddLast(new ClientTracker(ip, port, new Vector2(x, y), networkStream));
-            return;
         }
         else if (_clients.Count < 2)
         {
             ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, null, 0, networkStream);
             ClientSetPosition(ip, port, null, 0, _clients.First.Value.networkStream);
             _clients.AddLast(new ClientTracker(ip, port, new Vector2(x, y), networkStream));
-            return;
         }
         else if (_clients.Count < 3)
         {
@@ -115,7 +113,6 @@ public class Tracker : MonoBehaviour
             ClientSetPosition(ip, port, _clients.Last.Value.ip, _clients.Last.Value.port, _clients.First.Value.networkStream);
             ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, ip, port, _clients.Last.Value.networkStream);
             _clients.AddLast(new ClientTracker(ip, port, new Vector2(x, y), networkStream));
-            return;
         }
         else
         {
@@ -139,14 +136,12 @@ public class Tracker : MonoBehaviour
                 minC = _clients.Last;
             }
             
-            
-            
-            if (minC.Previous != null)
+            if (minC.Previous.Value != null)
                 ClientSetPosition(minC.Previous.Value.ip, minC.Previous.Value.port, ip, port, minC.Value.networkStream);
             else
                 ClientSetPosition(_clients.Last.Value.ip, _clients.Last.Value.port, ip, port, minC.Value.networkStream);
             
-            if (minC.Next.Next != null)
+            if (minC.Next.Next.Value != null)
                 ClientSetPosition(ip, port, minC.Next.Next.Value.ip, minC.Next.Next.Value.port, minC.Next.Value.networkStream);
             else
                 ClientSetPosition(ip, port, _clients.First.Value.ip, _clients.First.Value.port, minC.Next.Value.networkStream);
