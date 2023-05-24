@@ -98,21 +98,22 @@ public class Tracker : MonoBehaviour
 
         if (_clients.Count < 1)
         {
-            ClientSetPosition(null, 0, null, 0, networkStream);
+            ClientSetPosition("0", 0, "0", 0, networkStream);
             _clients.AddLast(new ClientTracker(ip, port, new Vector2(x, y), networkStream));
         }
         else if (_clients.Count < 2)
         {
-            ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, null, 0, networkStream);
-            ClientSetPosition(ip, port, null, 0, _clients.First.Value.networkStream);
+            ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, "0", 0, networkStream);
+            ClientSetPosition(ip, port, "0", 0, _clients.First.Value.networkStream);
             _clients.AddLast(new ClientTracker(ip, port, new Vector2(x, y), networkStream));
         }
         else if (_clients.Count < 3)
         {
-            ClientSetPosition(_clients.Last.Value.ip, _clients.Last.Value.port, _clients.First.Value.ip, _clients.First.Value.port, networkStream);
-            ClientSetPosition(ip, port, _clients.Last.Value.ip, _clients.Last.Value.port, _clients.First.Value.networkStream);
-            ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, ip, port, _clients.Last.Value.networkStream);
-            _clients.AddAfter(_clients.Last, new ClientTracker(ip, port, new Vector2(x, y), networkStream));
+            ClientSetPosition(ip, port, _clients.First.Next.Value.ip, _clients.First.Next.Value.port, _clients.First.Value.networkStream);
+            ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, ip, port, _clients.First.Next.Value.networkStream);
+            ClientSetPosition(_clients.First.Next.Value.ip, _clients.First.Next.Value.port, _clients.First.Value.ip, _clients.First.Value.port, networkStream);
+
+            _clients.AddAfter(_clients.First.Next, new ClientTracker(ip, port, new Vector2(x, y), networkStream));
         }
         else
         {
@@ -136,16 +137,18 @@ public class Tracker : MonoBehaviour
                 minC = _clients.Last;
             }
 
-            ClientSetPosition(null, 0, ip, port, minC.Value.networkStream);
+            LinkedListNode<ClientTracker> minCNext;
+            if (minC.Next.Value != null)
+                minCNext = minC.Next;
+            else
+                minCNext = _clients.First;
 
-            if (minC.Next.Value != null)
-                ClientSetPosition(ip, port, null, 0, minC.Next.Value.networkStream);
-            else
-                ClientSetPosition(ip, port, null, 0, _clients.First.Value.networkStream);
-            if (minC.Next.Value != null)
-                ClientSetPosition(minC.Value.ip, minC.Value.port, minC.Next.Value.ip, minC.Next.Value.port, networkStream);
-            else
-                ClientSetPosition(minC.Value.ip, minC.Value.port, _clients.First.Value.ip, _clients.First.Value.port, networkStream);
+            ClientSetPosition(ip, port, "1", 0, minCNext.Value.networkStream);
+
+            ClientSetPosition("1", 0, ip, port, minC.Value.networkStream);
+
+            ClientSetPosition(minC.Value.ip, minC.Value.port, minCNext.Value.ip, minCNext.Value.port, networkStream);
+
             _clients.AddAfter(minC, new ClientTracker(ip, port, new Vector2(x, y), networkStream));
         }
         ShowTextClients();
@@ -183,8 +186,10 @@ public class Tracker : MonoBehaviour
     }
     private static void ClientSetPosition(string ip1, int port1, string ip2, int port2, NetworkStream networkStream)
     {
+        //ip1 1 = do not touch; 0 = delete
+        byte[] buffer = new byte[2048];
         JTrackerData jd = new JTrackerData(TipeJData.SetPosition, ip1, port1, ip2, port2);
-        byte[] buffer = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(jd));
+        buffer = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(jd));
         networkStream.Write(buffer, 0, buffer.Length);
     }
     private static float CalculateDistanceToLine(Vector2 point, Vector2 lineStart, Vector2 lineEnd)

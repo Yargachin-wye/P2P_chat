@@ -109,17 +109,33 @@ public class Client
     }
     private static void SetPosition(string neighbour1Ip, int port1, string neighbour2Ip = null, int port2 = 0)
     {
-        if (neighbour1Ip != null)
+        switch (neighbour1Ip)
         {
-            _neighbour1Ip = IPAddress.Parse(neighbour1Ip);
-            _port1 = port1;
-            ManClientMenager.instance.ShowMessage(_neighbour1Ip + "  " + _port1.ToString());
+            case "1":
+                break;
+            case "0":
+                _neighbour1Ip = null;
+                _port1 = 0;
+                break;
+            default:
+                _neighbour1Ip = IPAddress.Parse(neighbour1Ip);
+                _port1 = port1;
+                ManClientMenager.instance.ShowMessage(_neighbour1Ip + "  " + _port1.ToString());
+                break;
         }
-        if (neighbour2Ip != null)
+        switch (neighbour2Ip)
         {
-            _neighbour2Ip = IPAddress.Parse(neighbour2Ip);
-            _port2 = port2;
-            ManClientMenager.instance.ShowMessage(_neighbour2Ip + "  " + _port2.ToString());
+            case "1":
+                break;
+            case "0":
+                _neighbour2Ip = null;
+                _port2 = 0;
+                break;
+            default:
+                _neighbour2Ip = IPAddress.Parse(neighbour2Ip);
+                _port2 = port2;
+                ManClientMenager.instance.ShowMessage(_neighbour2Ip + "  " + _port2.ToString());
+                break;
         }
     }
     public static void DisConnectFromTracker()
