@@ -119,21 +119,33 @@ public class Tracker : MonoBehaviour
         }
         else
         {
-            float min = 600;
+            float d;
+            float min = 600f;
             LinkedListNode<ClientTracker> minC = new LinkedListNode<ClientTracker>(new ClientTracker(" ", 0, Vector2.zero, networkStream));
+            
             for (LinkedListNode<ClientTracker> node = _clients.First.Next; node != null; node = node.Next)
             {
-                float d = CalculateDistanceToLine(new Vector2(x, y), node.Previous.Value.pos, node.Value.pos);
+                d = CalculateDistanceToLine(new Vector2(x, y), node.Previous.Value.pos, node.Value.pos);
                 if (min > d)
                 {
                     min = d;
                     minC = node.Previous;
                 }
             }
+            d = CalculateDistanceToLine(new Vector2(x, y), _clients.First.Value.pos, _clients.Last.Value.pos);
+            if (min > d)
+            {
+                min = d;
+                minC = _clients.Last;
+            }
+            
+            
+            
             if (minC.Previous != null)
                 ClientSetPosition(minC.Previous.Value.ip, minC.Previous.Value.port, ip, port, minC.Value.networkStream);
             else
                 ClientSetPosition(_clients.Last.Value.ip, _clients.Last.Value.port, ip, port, minC.Value.networkStream);
+            
             if (minC.Next.Next != null)
                 ClientSetPosition(ip, port, minC.Next.Next.Value.ip, minC.Next.Next.Value.port, minC.Next.Value.networkStream);
             else
@@ -165,7 +177,7 @@ public class Tracker : MonoBehaviour
         {
             foreach(var client in _clients)
             {
-                textClients.text += client.ip +" "+ client.port.ToString() + "\n";
+                textClients.text += client.ip +":"+ client.port.ToString() + "(" + client.pos.x.ToString() +"; "+ client.pos.x.ToString() + ")\n";
             }
         });
     }
