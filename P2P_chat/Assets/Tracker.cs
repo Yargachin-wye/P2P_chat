@@ -40,7 +40,6 @@ public class Tracker : MonoBehaviour
         TcpListener tcpListener = new TcpListener(IPAddress.Parse(ipAddress), 0);
         tcpListener.Start();
 
-
         int port = ((IPEndPoint)tcpListener.LocalEndpoint).Port;
 
         UnityMainThreadDispatcher.Instance().Enqueue(() =>
@@ -60,7 +59,6 @@ public class Tracker : MonoBehaviour
 
             if ((int)networkStream.Read(buffer, 0, buffer.Length) == 0)
             {
-                ShowTextClients(ipClient + " disconnected");
                 tcpClient.Close();
                 tcpListener.Stop();
                 _threads.Remove(Thread.CurrentThread);
@@ -72,7 +70,6 @@ public class Tracker : MonoBehaviour
             switch (jd.tipeData)
             {
                 case TipeJData.Connect:
-                    ShowTextClients(jd.ip1 + " connected");
 
                     UnityMainThreadDispatcher.Instance().Enqueue(() =>
                     {
@@ -84,7 +81,6 @@ public class Tracker : MonoBehaviour
 
                     break;
                 default:
-                    ShowTextClients("wrong TipeJData");
                     break;
             }
         }
@@ -99,6 +95,7 @@ public class Tracker : MonoBehaviour
             x = Random.Range(-200f, 200f);
             y = Random.Range(-200f, 200f);
         });
+
         if (_clients.Count < 1)
         {
             ClientSetPosition(null, 0, null, 0, networkStream);
@@ -120,29 +117,34 @@ public class Tracker : MonoBehaviour
             _clients.AddLast(new ClientTracker(ip, port, new Vector2(x, y), networkStream));
             return;
         }
-        float min = 600;
-        LinkedListNode<ClientTracker> minC = new LinkedListNode<ClientTracker>(new ClientTracker(" ", 0, Vector2.zero, networkStream));
-        for (LinkedListNode<ClientTracker> node = _clients.First.Next; node != null; node = node.Next)
+        else
         {
-            float d = CalculateDistanceToLine(new Vector2(x, y), node.Previous.Value.pos, node.Value.pos);
-            if (min > d)
+            float min = 600;
+            LinkedListNode<ClientTracker> minC = new LinkedListNode<ClientTracker>(new ClientTracker(" ", 0, Vector2.zero, networkStream));
+            for (LinkedListNode<ClientTracker> node = _clients.First.Next; node != null; node = node.Next)
             {
-                min = d;
-                minC = node.Previous;
+                float d = CalculateDistanceToLine(new Vector2(x, y), node.Previous.Value.pos, node.Value.pos);
+                if (min > d)
+                {
+                    min = d;
+                    minC = node.Previous;
+                }
             }
+            if (minC.Previous != null)
+                ClientSetPosition(minC.Previous.Value.ip, minC.Previous.Value.port, ip, port, minC.Value.networkStream);
+            else
+                ClientSetPosition(_clients.Last.Value.ip, _clients.Last.Value.port, ip, port, minC.Value.networkStream);
+            if (minC.Next.Next != null)
+                ClientSetPosition(ip, port, minC.Next.Next.Value.ip, minC.Next.Next.Value.port, minC.Next.Value.networkStream);
+            else
+                ClientSetPosition(ip, port, _clients.First.Value.ip, _clients.First.Value.port, minC.Next.Value.networkStream);
+
+            ClientSetPosition(minC.Value.ip, minC.Value.port, minC.Next.Value.ip, minC.Next.Value.port, networkStream);
+
+            _clients.AddAfter(minC, new ClientTracker(ip, port, new Vector2(x, y), networkStream));
         }
-        if (minC.Previous != null)
-            ClientSetPosition(minC.Previous.Value.ip, minC.Previous.Value.port, ip, port, minC.Value.networkStream);
-        else
-            ClientSetPosition(_clients.Last.Value.ip, _clients.Last.Value.port, ip, port, minC.Value.networkStream);
-        if(minC.Next.Next != null)
-            ClientSetPosition(ip, port, minC.Next.Next.Value.ip, minC.Next.Next.Value.port, minC.Next.Value.networkStream);
-        else
-            ClientSetPosition(ip, port, _clients.First.Value.ip, _clients.First.Value.port, minC.Next.Value.networkStream);
 
-        ClientSetPosition(minC.Value.ip, minC.Value.port, minC.Next.Value.ip, minC.Next.Value.port, networkStream);
-
-        _clients.AddAfter(minC, new ClientTracker(ip, port, new Vector2(x, y), networkStream));
+        ShowTextClients();
     }
     private static string GetLocalIPAddress()
     {
@@ -157,11 +159,14 @@ public class Tracker : MonoBehaviour
         Debug.LogWarning("IP-адрес не найден.");
         return " ";
     }
-    private static void ShowTextClients(string str)
+    private static void ShowTextClients()
     {
         UnityMainThreadDispatcher.Instance().Enqueue(() =>
         {
-            textClients.text += str + "\n";
+            foreach(var client in _clients)
+            {
+                textClients.text += client.ip +" "+ client.port.ToString() + "\n";
+            }
         });
     }
     private static void ShowTextInfo(string str)

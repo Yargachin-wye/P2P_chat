@@ -29,7 +29,6 @@ public class JMessageData
 }
 public enum TipeJData
 {
-    Disconnect,
     Connect,
     SetPosition,
 }

@@ -97,9 +97,6 @@ public class Client
                 case TipeJData.Connect:
 
                     break;
-                case TipeJData.Disconnect:
-
-                    break;
                 case TipeJData.SetPosition:
                     ManClientMenager.instance.ShowMessage("You connected pos:");
                     SetPosition(jd.ip1, jd.port1, jd.ip2, jd.port2);
@@ -131,8 +128,6 @@ public class Client
     }
     public static void DisConnectFromTracker()
     {
-        SendJDataToTracker(new JTrackerData(TipeJData.Disconnect, _myIpAddress.ToString(), _myPort));
         _trackerStream.Close();
-        //_trackerTcpClient.Close();
     }
 }
