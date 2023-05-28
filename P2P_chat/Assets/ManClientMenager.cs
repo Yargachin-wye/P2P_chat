@@ -69,7 +69,7 @@ public class ManClientMenager : MonoBehaviour
     }
     public void SendMessage()
     {
-        Client.SendMessage(_outMessageText.text);
+        Client.SendNewMessage(_outMessageText.text);
     }
     public void ShowMessage(string str)
     {

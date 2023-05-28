@@ -149,6 +149,8 @@ public class Tracker : MonoBehaviour
 
             newClient = _clients.AddAfter(minC, new ClientTracker(ip, port, new Vector2(x, y), net));
         }
+        ClientSetPosition("save", 0, "save", 0, _clients.First.Value.net);
+        ClientSetPosition("save", 0, "save", 0, _clients.Last.Value.net);
         ShowTextClients();
         return newClient;
     }
@@ -165,8 +167,14 @@ public class Tracker : MonoBehaviour
             previous = _clients.Last;
         else
             previous = client.Previous;
+        if (_clients.Count < 4)
+        {
+            ClientSetPosition("save", 0, next.Value.ip, next.Value.port, previous.Value.net);
+            ClientSetPosition(previous.Value.ip, previous.Value.port, "save", 0, next.Value.net);
 
-        if (_clients.Count == 4)
+            _clients.Remove(client.Value);
+        }
+        else if (_clients.Count == 4)
         {
             _clients.Remove(client.Value);
 
@@ -188,7 +196,13 @@ public class Tracker : MonoBehaviour
             ClientSetPosition("del", 0, "del", 0, next.Value.net);
             _clients.Remove(client);
         }
+        else if (_clients.Count == 1)
+        {
+            _clients.Remove(client);
+        }
 
+        ClientSetPosition("save", 0, "save", 0, _clients.First.Value.net);
+        ClientSetPosition("save", 0, "save", 0, _clients.Last.Value.net);
         ShowTextClients();
     }
     private static string GetLocalIPAddress()
@@ -222,10 +236,10 @@ public class Tracker : MonoBehaviour
             textInfo.text += str + "\n";
         });
     }
-    private static void ClientSetPosition(string ip1, int port1, string ip2, int port2, NetworkStream networkStream)
+    private static void ClientSetPosition(string ip1, int port1, string ip2, int port2, NetworkStream networkStream, int end = 0)
     {
         byte[] buffer = new byte[2048];
-        JTrackerData jd = new JTrackerData(TipeJData.SetPosition, ip1, port1, ip2, port2);
+        JTrackerData jd = new JTrackerData(TipeJData.SetPosition, ip1, port1, ip2, port2, end);
         Debug.Log(ip1 + ":" + port1.ToString() + "; " + ip2 + ":" + port2.ToString());
         Debug.Log(JsonConvert.SerializeObject(jd));
         buffer = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(jd));

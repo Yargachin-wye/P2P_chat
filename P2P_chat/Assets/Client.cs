@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
@@ -22,8 +23,9 @@ public class Client
     private static NetworkStream _trackerStream;
     private static TcpClient _trackerTcpClient;
     private static UdpClient _udpClient;
+    private static bool _end = false;
 
-    private static Dictionary<string, int> _messages = new Dictionary<string, int>();
+
     public static void StartReceive(IPAddress myIpAddress, IPAddress TrackerIp, int port)
     {
         _myIpAddress = myIpAddress;
@@ -38,29 +40,39 @@ public class Client
         Thread thread1 = new Thread(threadT);
         thread1.Start();
 
-
         ThreadStart threadR = new ThreadStart(ReceiveMessage);
         Thread thread2 = new Thread(threadR);
         thread2.Start();
 
     }
-    public static void SendMessage(string str)
+    public static void SendNewMessage(string str)
     {
         using UdpClient sender1 = new();
-        JMessageData jdm = new JMessageData(_myIpAddress.ToString(), str);
+        JMessageData jdm = new JMessageData(_myIpAddress.ToString(), _myPort, str);
         byte[] data = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(jdm));
 
         sender1.Send(data, data.Length, new IPEndPoint(_neighbour1Ip, _port1));
 
         sender1.Close();
+
         if (_neighbour2Ip == null)
             return;
 
         using UdpClient sender2 = new();
+
         sender2.Send(data, data.Length, new IPEndPoint(_neighbour2Ip, _port2));
 
-        ManClientMenager.instance.ShowMessage("you - " + str);
         sender2.Close();
+    }
+    public static void SendMessage(string str, IPAddress ip, int port)
+    {
+        using UdpClient sender1 = new();
+        JMessageData jdm = new JMessageData(_myIpAddress.ToString(), _myPort, str);
+        byte[] data = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(jdm));
+
+        sender1.Send(data, data.Length, new IPEndPoint(ip, port));
+
+        sender1.Close();
     }
     public static void ReceiveMessage()
     {
@@ -76,6 +88,18 @@ public class Client
             var result = _udpClient.Receive(ref ip);
             string json = Encoding.UTF8.GetString(result);
             JMessageData jdm = JsonConvert.DeserializeObject<JMessageData>(json);
+
+            if (!_end)
+            {
+                if (_neighbour1Ip.ToString() == jdm.idIp && _port1 == jdm.idPort)
+                {
+                    SendMessage(jdm.message, _neighbour2Ip, _port2);
+                }
+                else
+                {
+                    SendMessage(jdm.message, _neighbour1Ip, _port1);
+                }
+            }
             ManClientMenager.instance.ShowMessage(jdm.message);
         }
     }
@@ -88,7 +112,7 @@ public class Client
     }
     private static void ReadMessageFromTracke()
     {
-        byte[] buffer = new byte[2048];
+        byte[] buffer;
         while (true)
         {
             buffer = new byte[2048];
@@ -104,6 +128,12 @@ public class Client
                 case TipeJData.SetPosition:
                     ManClientMenager.instance.ShowMessage("You connected pos:");
                     SetPosition(jd.ip1, jd.port1, jd.ip2, jd.port2);
+
+                    if (jd.end == 1)
+                        _end = true;
+                    else
+                        _end = false;
+
                     break;
                 default:
                     ManClientMenager.instance.ShowMessage("wrong TipeJData");
@@ -146,4 +176,5 @@ public class Client
     {
         _trackerStream.Close();
     }
+
 }
