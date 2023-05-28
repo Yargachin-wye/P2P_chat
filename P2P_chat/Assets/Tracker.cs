@@ -86,7 +86,7 @@ public class Tracker : MonoBehaviour
         tcpClient.Close();
         tcpListener.Stop();
     }
-    private static LinkedListNode<ClientTracker> AddClient(string ip, int port, NetworkStream networkStream)
+    private static LinkedListNode<ClientTracker> AddClient(string ip, int port, NetworkStream net)
     {
         LinkedListNode<ClientTracker> newClient;
         int x = 0, y = 0;
@@ -97,22 +97,22 @@ public class Tracker : MonoBehaviour
 
         if (_clients.Count < 1)
         {
-            ClientSetPosition("0", 0, "0", 0, networkStream);
-            newClient = _clients.AddLast(new ClientTracker(ip, port, new Vector2(x, y), networkStream));
+            ClientSetPosition("0", 0, "0", 0, net);
+            newClient = _clients.AddLast(new ClientTracker(ip, port, new Vector2(x, y), net));
         }
         else if (_clients.Count < 2)
         {
-            ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, "0", 0, networkStream);
-            ClientSetPosition(ip, port, "0", 0, _clients.First.Value.networkStream);
-            newClient = _clients.AddLast(new ClientTracker(ip, port, new Vector2(x, y), networkStream));
+            ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, "0", 0, net);
+            ClientSetPosition(ip, port, "0", 0, _clients.First.Value.net);
+            newClient = _clients.AddLast(new ClientTracker(ip, port, new Vector2(x, y), net));
         }
         else if (_clients.Count < 3)
         {
-            ClientSetPosition(ip, port, _clients.First.Next.Value.ip, _clients.First.Next.Value.port, _clients.First.Value.networkStream);
-            ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, ip, port, _clients.First.Next.Value.networkStream);
-            ClientSetPosition(_clients.First.Next.Value.ip, _clients.First.Next.Value.port, _clients.First.Value.ip, _clients.First.Value.port, networkStream);
+            ClientSetPosition(ip, port, _clients.First.Next.Value.ip, _clients.First.Next.Value.port, _clients.First.Value.net);
+            ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, ip, port, _clients.First.Next.Value.net);
+            ClientSetPosition(_clients.First.Next.Value.ip, _clients.First.Next.Value.port, _clients.First.Value.ip, _clients.First.Value.port, net);
 
-            newClient = _clients.AddAfter(_clients.First.Next, new ClientTracker(ip, port, new Vector2(x, y), networkStream));
+            newClient = _clients.AddAfter(_clients.First.Next, new ClientTracker(ip, port, new Vector2(x, y), net));
         }
         else
         {
@@ -141,13 +141,13 @@ public class Tracker : MonoBehaviour
             else
                 minCNext = _clients.First;
 
-            ClientSetPosition(ip, port, "1", 0, minCNext.Value.networkStream);
+            ClientSetPosition(ip, port, "1", 0, minCNext.Value.net);
 
-            ClientSetPosition("1", 0, ip, port, minC.Value.networkStream);
+            ClientSetPosition("1", 0, ip, port, minC.Value.net);
 
-            ClientSetPosition(minC.Value.ip, minC.Value.port, minCNext.Value.ip, minCNext.Value.port, networkStream);
+            ClientSetPosition(minC.Value.ip, minC.Value.port, minCNext.Value.ip, minCNext.Value.port, net);
 
-            newClient = _clients.AddAfter(minC, new ClientTracker(ip, port, new Vector2(x, y), networkStream));
+            newClient = _clients.AddAfter(minC, new ClientTracker(ip, port, new Vector2(x, y), net));
         }
         ShowTextClients();
         return newClient;
@@ -156,36 +156,37 @@ public class Tracker : MonoBehaviour
     {
         LinkedListNode<ClientTracker> next;
         LinkedListNode<ClientTracker> previous;
-        if (client.Next.Value == null)
+        if (client.Next == null)
             next = _clients.First;
         else
             next = client.Next;
 
-        if (client.Previous.Value == null)
+        if (client.Previous == null)
             previous = _clients.Last;
         else
             previous = client.Previous;
+
         if (_clients.Count == 4)
         {
             _clients.Remove(client.Value);
 
-            ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, _clients.Last.Value.ip, _clients.Last.Value.port, _clients.First.Next.Value.networkStream);
+            ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, _clients.Last.Value.ip, _clients.Last.Value.port, _clients.First.Next.Value.net);
 
-            ClientSetPosition(_clients.Last.Value.ip, _clients.Last.Value.port, _clients.First.Next.Value.ip, _clients.First.Next.Value.port, _clients.First.Value.networkStream);
+            ClientSetPosition(_clients.Last.Value.ip, _clients.Last.Value.port, _clients.First.Next.Value.ip, _clients.First.Next.Value.port, _clients.First.Value.net);
 
-            ClientSetPosition(_clients.First.Next.Value.ip, _clients.First.Next.Value.port, _clients.First.Value.ip, _clients.First.Value.port, _clients.Last.Value.networkStream);
+            ClientSetPosition(_clients.First.Next.Value.ip, _clients.First.Next.Value.port, _clients.First.Value.ip, _clients.First.Value.port, _clients.Last.Value.net);
         }
         else if (_clients.Count == 3)
         {
-            ClientSetPosition(previous.Value.ip, previous.Value.port, "0", 0, next.Value.networkStream);
-            ClientSetPosition(next.Value.ip, next.Value.port, "0", 0, previous.Value.networkStream);
+            ClientSetPosition(previous.Value.ip, previous.Value.port, "0", 0, next.Value.net);
+            ClientSetPosition(next.Value.ip, next.Value.port, "0", 0, previous.Value.net);
             _clients.Remove(client.Value);
         }
         else if (_clients.Count == 2)
         {
 
-            ClientSetPosition("0", 0, "0", 0, next.Value.networkStream);
-            _clients.Remove(client.Value);
+            ClientSetPosition("0", 0, "0", 0, next.Value.net);
+            _clients.Remove(client);
         }
 
         ShowTextClients();
@@ -251,12 +252,12 @@ public class ClientTracker
     public string ip;
     public int port;
     public Vector2 pos;
-    public NetworkStream networkStream;
+    public NetworkStream net;
     public ClientTracker(string Ip, int Port, Vector2 Pos, NetworkStream NetworkStream)
     {
         ip = Ip;
         port = Port;
         pos = Pos;
-        networkStream = NetworkStream;
+        net = NetworkStream;
     }
 }
