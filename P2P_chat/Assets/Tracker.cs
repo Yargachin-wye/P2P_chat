@@ -52,7 +52,7 @@ public class Tracker : MonoBehaviour
 
         byte[] buffer = new byte[2048];
         string json;
-        string ipClient = " ";
+        LinkedListNode<ClientTracker> client = null;
         while (true)
         {
             NetworkStream networkStream = tcpClient.GetStream();
@@ -61,6 +61,7 @@ public class Tracker : MonoBehaviour
             {
                 tcpClient.Close();
                 tcpListener.Stop();
+                RemoveClient(client);
                 _threads.Remove(Thread.CurrentThread);
                 return;
             }
@@ -76,9 +77,7 @@ public class Tracker : MonoBehaviour
                         StartReceive();
                     });
 
-                    AddClient(jd.ip1, jd.port1, networkStream);
-                    ipClient = jd.ip1;
-
+                    client = AddClient(jd.ip1, jd.port1, networkStream);
                     break;
                 default:
                     break;
@@ -87,25 +86,25 @@ public class Tracker : MonoBehaviour
         tcpClient.Close();
         tcpListener.Stop();
     }
-    private static void AddClient(string ip, int port, NetworkStream networkStream)
+    private static LinkedListNode<ClientTracker> AddClient(string ip, int port, NetworkStream networkStream)
     {
-        float x = 0, y = 0;
-        UnityMainThreadDispatcher.Instance().Enqueue(() =>
-        {
-            x = Random.Range(-200f, 200f);
-            y = Random.Range(-201f, 201f);
-        });
+        LinkedListNode<ClientTracker> newClient;
+        int x = 0, y = 0;
+        System.Random rnd = new System.Random();
+        x = rnd.Next(-201, 201);
+        y = rnd.Next(-201, 201);
+
 
         if (_clients.Count < 1)
         {
             ClientSetPosition("0", 0, "0", 0, networkStream);
-            _clients.AddLast(new ClientTracker(ip, port, new Vector2(x, y), networkStream));
+            newClient = _clients.AddLast(new ClientTracker(ip, port, new Vector2(x, y), networkStream));
         }
         else if (_clients.Count < 2)
         {
             ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, "0", 0, networkStream);
             ClientSetPosition(ip, port, "0", 0, _clients.First.Value.networkStream);
-            _clients.AddLast(new ClientTracker(ip, port, new Vector2(x, y), networkStream));
+            newClient = _clients.AddLast(new ClientTracker(ip, port, new Vector2(x, y), networkStream));
         }
         else if (_clients.Count < 3)
         {
@@ -113,7 +112,7 @@ public class Tracker : MonoBehaviour
             ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, ip, port, _clients.First.Next.Value.networkStream);
             ClientSetPosition(_clients.First.Next.Value.ip, _clients.First.Next.Value.port, _clients.First.Value.ip, _clients.First.Value.port, networkStream);
 
-            _clients.AddAfter(_clients.First.Next, new ClientTracker(ip, port, new Vector2(x, y), networkStream));
+            newClient = _clients.AddAfter(_clients.First.Next, new ClientTracker(ip, port, new Vector2(x, y), networkStream));
         }
         else
         {
@@ -133,7 +132,6 @@ public class Tracker : MonoBehaviour
             d = CalculateDistanceToLine(new Vector2(x, y), _clients.First.Value.pos, _clients.Last.Value.pos);
             if (min > d)
             {
-                min = d;
                 minC = _clients.Last;
             }
 
@@ -149,8 +147,47 @@ public class Tracker : MonoBehaviour
 
             ClientSetPosition(minC.Value.ip, minC.Value.port, minCNext.Value.ip, minCNext.Value.port, networkStream);
 
-            _clients.AddAfter(minC, new ClientTracker(ip, port, new Vector2(x, y), networkStream));
+            newClient = _clients.AddAfter(minC, new ClientTracker(ip, port, new Vector2(x, y), networkStream));
         }
+        ShowTextClients();
+        return newClient;
+    }
+    private static void RemoveClient(LinkedListNode<ClientTracker> client)
+    {
+        LinkedListNode<ClientTracker> next;
+        LinkedListNode<ClientTracker> previous;
+        if (client.Next.Value == null)
+            next = _clients.First;
+        else
+            next = client.Next;
+
+        if (client.Previous.Value == null)
+            previous = _clients.Last;
+        else
+            previous = client.Previous;
+        if (_clients.Count == 4)
+        {
+            _clients.Remove(client);
+
+            ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, _clients.Last.Value.ip, _clients.Last.Value.port, _clients.First.Next.Value.networkStream);
+
+            ClientSetPosition(_clients.Last.Value.ip, _clients.Last.Value.port, _clients.First.Next.Value.ip, _clients.First.Next.Value.port, _clients.First.Value.networkStream);
+
+            ClientSetPosition(_clients.First.Next.Value.ip, _clients.First.Next.Value.port, _clients.First.Value.ip, _clients.First.Value.port, _clients.Last.Value.networkStream);
+        }
+        else if (_clients.Count == 3)
+        {
+            ClientSetPosition(previous.Value.ip, previous.Value.port, "0", 0, next.Value.networkStream);
+            ClientSetPosition(next.Value.ip, next.Value.port, "0", 0, previous.Value.networkStream);
+            _clients.Remove(client);
+        }
+        else if (_clients.Count == 2)
+        {
+
+            ClientSetPosition("0", 0, "0", 0, next.Value.networkStream);
+            _clients.Remove(client);
+        }
+
         ShowTextClients();
     }
     private static string GetLocalIPAddress()
@@ -186,7 +223,6 @@ public class Tracker : MonoBehaviour
     }
     private static void ClientSetPosition(string ip1, int port1, string ip2, int port2, NetworkStream networkStream)
     {
-        //ip1 1 = do not touch; 0 = delete
         byte[] buffer = new byte[2048];
         JTrackerData jd = new JTrackerData(TipeJData.SetPosition, ip1, port1, ip2, port2);
         buffer = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(jd));
@@ -209,6 +245,7 @@ public class Tracker : MonoBehaviour
         return distanceToLine;
     }
 }
+
 public class ClientTracker
 {
     public string ip;

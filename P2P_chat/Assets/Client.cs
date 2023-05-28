@@ -46,16 +46,17 @@ public class Client
     }
     public static void SendMessage(string str)
     {
-        using UdpClient sender = new();
+        using UdpClient sender1 = new();
         JMessageData jdm = new JMessageData(_myIpAddress.ToString(), str);
         byte[] data = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(jdm));
 
-        sender.Send(data, data.Length, new IPEndPoint(_neighbour1Ip, _port1));
+        sender1.Send(data, data.Length, new IPEndPoint(_neighbour1Ip, _port1));
 
         if (_neighbour2Ip == null)
             return;
 
-        sender.Send(data, data.Length, new IPEndPoint(_neighbour2Ip, _port2));
+        using UdpClient sender2 = new();
+        sender2.Send(data, data.Length, new IPEndPoint(_neighbour2Ip, _port2));
 
         ManClientMenager.instance.ShowMessage("you - " + str);
     }
