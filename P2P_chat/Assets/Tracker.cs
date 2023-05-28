@@ -167,7 +167,7 @@ public class Tracker : MonoBehaviour
             previous = client.Previous;
         if (_clients.Count == 4)
         {
-            _clients.Remove(client);
+            _clients.Remove(client.Value);
 
             ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, _clients.Last.Value.ip, _clients.Last.Value.port, _clients.First.Next.Value.networkStream);
 
@@ -179,13 +179,13 @@ public class Tracker : MonoBehaviour
         {
             ClientSetPosition(previous.Value.ip, previous.Value.port, "0", 0, next.Value.networkStream);
             ClientSetPosition(next.Value.ip, next.Value.port, "0", 0, previous.Value.networkStream);
-            _clients.Remove(client);
+            _clients.Remove(client.Value);
         }
         else if (_clients.Count == 2)
         {
 
             ClientSetPosition("0", 0, "0", 0, next.Value.networkStream);
-            _clients.Remove(client);
+            _clients.Remove(client.Value);
         }
 
         ShowTextClients();
