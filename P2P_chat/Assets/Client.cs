@@ -52,6 +52,7 @@ public class Client
 
         sender1.Send(data, data.Length, new IPEndPoint(_neighbour1Ip, _port1));
 
+        sender1.Close();
         if (_neighbour2Ip == null)
             return;
 
@@ -59,6 +60,7 @@ public class Client
         sender2.Send(data, data.Length, new IPEndPoint(_neighbour2Ip, _port2));
 
         ManClientMenager.instance.ShowMessage("you - " + str);
+        sender2.Close();
     }
     public static void ReceiveMessage()
     {
@@ -112,9 +114,9 @@ public class Client
     {
         switch (neighbour1Ip)
         {
-            case "1":
+            case "save":
                 break;
-            case "0":
+            case "del":
                 _neighbour1Ip = null;
                 _port1 = 0;
                 break;
@@ -126,9 +128,9 @@ public class Client
         }
         switch (neighbour2Ip)
         {
-            case "1":
+            case "save":
                 break;
-            case "0":
+            case "del":
                 _neighbour2Ip = null;
                 _port2 = 0;
                 break;

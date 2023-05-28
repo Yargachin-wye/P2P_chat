@@ -59,9 +59,9 @@ public class Tracker : MonoBehaviour
 
             if ((int)networkStream.Read(buffer, 0, buffer.Length) == 0)
             {
+                RemoveClient(client);
                 tcpClient.Close();
                 tcpListener.Stop();
-                RemoveClient(client);
                 _threads.Remove(Thread.CurrentThread);
                 return;
             }
@@ -97,13 +97,13 @@ public class Tracker : MonoBehaviour
 
         if (_clients.Count < 1)
         {
-            ClientSetPosition("0", 0, "0", 0, net);
+            ClientSetPosition("del", 0, "del", 0, net);
             newClient = _clients.AddLast(new ClientTracker(ip, port, new Vector2(x, y), net));
         }
         else if (_clients.Count < 2)
         {
-            ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, "0", 0, net);
-            ClientSetPosition(ip, port, "0", 0, _clients.First.Value.net);
+            ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, "del", 0, net);
+            ClientSetPosition(ip, port, "del", 0, _clients.First.Value.net);
             newClient = _clients.AddLast(new ClientTracker(ip, port, new Vector2(x, y), net));
         }
         else if (_clients.Count < 3)
@@ -136,14 +136,14 @@ public class Tracker : MonoBehaviour
             }
 
             LinkedListNode<ClientTracker> minCNext;
-            if (minC.Next.Value != null)
+            if (minC.Next != null)
                 minCNext = minC.Next;
             else
                 minCNext = _clients.First;
 
-            ClientSetPosition(ip, port, "1", 0, minCNext.Value.net);
+            ClientSetPosition(ip, port, "save", 0, minCNext.Value.net);
 
-            ClientSetPosition("1", 0, ip, port, minC.Value.net);
+            ClientSetPosition("save", 0, ip, port, minC.Value.net);
 
             ClientSetPosition(minC.Value.ip, minC.Value.port, minCNext.Value.ip, minCNext.Value.port, net);
 
@@ -178,14 +178,14 @@ public class Tracker : MonoBehaviour
         }
         else if (_clients.Count == 3)
         {
-            ClientSetPosition(previous.Value.ip, previous.Value.port, "0", 0, next.Value.net);
-            ClientSetPosition(next.Value.ip, next.Value.port, "0", 0, previous.Value.net);
+            ClientSetPosition(previous.Value.ip, previous.Value.port, "del", 0, next.Value.net);
+            ClientSetPosition(next.Value.ip, next.Value.port, "del", 0, previous.Value.net);
             _clients.Remove(client.Value);
         }
         else if (_clients.Count == 2)
         {
 
-            ClientSetPosition("0", 0, "0", 0, next.Value.net);
+            ClientSetPosition("del", 0, "del", 0, next.Value.net);
             _clients.Remove(client);
         }
 
