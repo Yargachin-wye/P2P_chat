@@ -102,14 +102,14 @@ public class Tracker : MonoBehaviour
         }
         else if (_clients.Count < 2)
         {
-            ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, "del", 0, net);
-            ClientSetPosition(ip, port, "del", 0, _clients.First.Value.net);
+            ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, "del", 0, net,1);
+            ClientSetPosition(ip, port, "del", 0, _clients.First.Value.net,1);
             newClient = _clients.AddLast(new ClientTracker(ip, port, new Vector2(x, y), net));
         }
         else if (_clients.Count < 3)
         {
-            ClientSetPosition(ip, port, _clients.First.Next.Value.ip, _clients.First.Next.Value.port, _clients.First.Value.net);
-            ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, ip, port, _clients.First.Next.Value.net);
+            ClientSetPosition(ip, port, _clients.First.Next.Value.ip, _clients.First.Next.Value.port, _clients.First.Value.net, 1);
+            ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, ip, port, _clients.First.Next.Value.net, 1);
             ClientSetPosition(_clients.First.Next.Value.ip, _clients.First.Next.Value.port, _clients.First.Value.ip, _clients.First.Value.port, net);
 
             newClient = _clients.AddAfter(_clients.First.Next, new ClientTracker(ip, port, new Vector2(x, y), net));
@@ -148,9 +148,10 @@ public class Tracker : MonoBehaviour
             ClientSetPosition(minC.Value.ip, minC.Value.port, minCNext.Value.ip, minCNext.Value.port, net);
 
             newClient = _clients.AddAfter(minC, new ClientTracker(ip, port, new Vector2(x, y), net));
+
+            ClientSetPosition("save", 0, "save", 0, _clients.First.Value.net,1);
+            ClientSetPosition("save", 0, "save", 0, _clients.Last.Value.net,1);
         }
-        ClientSetPosition("save", 0, "save", 0, _clients.First.Value.net);
-        ClientSetPosition("save", 0, "save", 0, _clients.Last.Value.net);
         ShowTextClients();
         return newClient;
     }
@@ -167,12 +168,15 @@ public class Tracker : MonoBehaviour
             previous = _clients.Last;
         else
             previous = client.Previous;
-        if (_clients.Count < 4)
+
+        if (_clients.Count > 4)
         {
             ClientSetPosition("save", 0, next.Value.ip, next.Value.port, previous.Value.net);
             ClientSetPosition(previous.Value.ip, previous.Value.port, "save", 0, next.Value.net);
 
             _clients.Remove(client.Value);
+            ClientSetPosition("save", 0, "save", 0, _clients.First.Value.net, 1);
+            ClientSetPosition("save", 0, "save", 0, _clients.Last.Value.net, 1);
         }
         else if (_clients.Count == 4)
         {
@@ -180,14 +184,14 @@ public class Tracker : MonoBehaviour
 
             ClientSetPosition(_clients.First.Value.ip, _clients.First.Value.port, _clients.Last.Value.ip, _clients.Last.Value.port, _clients.First.Next.Value.net);
 
-            ClientSetPosition(_clients.Last.Value.ip, _clients.Last.Value.port, _clients.First.Next.Value.ip, _clients.First.Next.Value.port, _clients.First.Value.net);
+            ClientSetPosition(_clients.Last.Value.ip, _clients.Last.Value.port, _clients.First.Next.Value.ip, _clients.First.Next.Value.port, _clients.First.Value.net, 1);
 
-            ClientSetPosition(_clients.First.Next.Value.ip, _clients.First.Next.Value.port, _clients.First.Value.ip, _clients.First.Value.port, _clients.Last.Value.net);
+            ClientSetPosition(_clients.First.Next.Value.ip, _clients.First.Next.Value.port, _clients.First.Value.ip, _clients.First.Value.port, _clients.Last.Value.net, 1);
         }
         else if (_clients.Count == 3)
         {
-            ClientSetPosition(previous.Value.ip, previous.Value.port, "del", 0, next.Value.net);
-            ClientSetPosition(next.Value.ip, next.Value.port, "del", 0, previous.Value.net);
+            ClientSetPosition(previous.Value.ip, previous.Value.port, "del", 0, next.Value.net,1);
+            ClientSetPosition(next.Value.ip, next.Value.port, "del", 0, previous.Value.net,1);
             _clients.Remove(client.Value);
         }
         else if (_clients.Count == 2)
@@ -201,8 +205,6 @@ public class Tracker : MonoBehaviour
             _clients.Remove(client);
         }
 
-        ClientSetPosition("save", 0, "save", 0, _clients.First.Value.net);
-        ClientSetPosition("save", 0, "save", 0, _clients.Last.Value.net);
         ShowTextClients();
     }
     private static string GetLocalIPAddress()
