@@ -91,6 +91,7 @@ public class Client
         byte[] buffer = new byte[2048];
         while (true)
         {
+            buffer = new byte[2048];
             _trackerStream.Read(buffer, 0, buffer.Length);
             string json = Encoding.UTF8.GetString(buffer);
             JTrackerData jd = JsonConvert.DeserializeObject<JTrackerData>(json);

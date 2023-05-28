@@ -226,6 +226,8 @@ public class Tracker : MonoBehaviour
     {
         byte[] buffer = new byte[2048];
         JTrackerData jd = new JTrackerData(TipeJData.SetPosition, ip1, port1, ip2, port2);
+        Debug.Log(ip1 + ":" + port1.ToString() + "; " + ip2 + ":" + port2.ToString());
+        Debug.Log(JsonConvert.SerializeObject(jd));
         buffer = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(jd));
         networkStream.Write(buffer, 0, buffer.Length);
     }
