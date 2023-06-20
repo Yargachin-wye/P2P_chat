@@ -25,6 +25,6 @@ public class Hostess : MonoBehaviour
         _hostessPanel.SetActive(false);
         _clienPanel.SetActive(true);
         _trackerPanel.SetActive(false);
-        ManClientMenager.instance.StartClient();
+        MainClientMenager.instance.StartClient();
     }
 }

@@ -47,6 +47,7 @@ public class Client
     }
     public static void SendNewMessage(string str)
     {
+        MainClientMenager.instance.ShowMessage("you - " + str);
         using UdpClient sender1 = new();
         JMessageData jdm = new JMessageData(_myIpAddress.ToString(), _myPort, str);
         byte[] data = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(jdm));
@@ -100,7 +101,7 @@ public class Client
                     SendMessage(jdm.message, _neighbour1Ip, _port1);
                 }
             }
-            ManClientMenager.instance.ShowMessage(jdm.message);
+            MainClientMenager.instance.ShowMessage(jdm.message);
         }
     }
 
@@ -126,7 +127,7 @@ public class Client
 
                     break;
                 case TipeJData.SetPosition:
-                    ManClientMenager.instance.ShowMessage("You connected pos:");
+                    MainClientMenager.instance.ShowMessage("You connected pos:");
                     SetPosition(jd.ip1, jd.port1, jd.ip2, jd.port2);
 
                     if (jd.end == 1)
@@ -136,7 +137,7 @@ public class Client
 
                     break;
                 default:
-                    ManClientMenager.instance.ShowMessage("wrong TipeJData");
+                    MainClientMenager.instance.ShowMessage("wrong TipeJData");
                     break;
             }
         }
@@ -154,7 +155,7 @@ public class Client
             default:
                 _neighbour1Ip = IPAddress.Parse(neighbour1Ip);
                 _port1 = port1;
-                ManClientMenager.instance.ShowMessage(_neighbour1Ip + "  " + _port1.ToString());
+                MainClientMenager.instance.ShowMessage(_neighbour1Ip + "  " + _port1.ToString());
                 break;
         }
         switch (neighbour2Ip)
@@ -168,7 +169,7 @@ public class Client
             default:
                 _neighbour2Ip = IPAddress.Parse(neighbour2Ip);
                 _port2 = port2;
-                ManClientMenager.instance.ShowMessage(_neighbour2Ip + "  " + _port2.ToString());
+                MainClientMenager.instance.ShowMessage(_neighbour2Ip + "  " + _port2.ToString());
                 break;
         }
     }

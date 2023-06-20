@@ -8,7 +8,7 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using TMPro;
 
-public class ManClientMenager : MonoBehaviour
+public class MainClientMenager : MonoBehaviour
 {
     [Header("Input for start")]
     [SerializeField] private TMP_InputField _ipInputField;
@@ -21,7 +21,7 @@ public class ManClientMenager : MonoBehaviour
     [SerializeField] private GameObject _conectButton;
     [SerializeField] private GameObject _restartButton;
 
-    public static ManClientMenager instance;
+    public static MainClientMenager instance;
     bool client = false;
     private void Awake()
     {
